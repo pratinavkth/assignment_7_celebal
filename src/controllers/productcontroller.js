@@ -20,12 +20,13 @@ exports.createProduct= async(req,res)=>{
 
 exports.getProduct = async(req,res)=>{
     try {
-        const{product_id}= req.body;
-        if(!product_id){
+        // const{product_id}= req.body;
+        const product = await products.findById(req.params.id);
+        if(!product){
             return res.status(400).json({msg:"There is no product with this product Id"});
         }
-        const particular_product = await products.findOne({product_id});
-        return res.status(200).json(particular_product);
+        // const particular_product = await products.findOne(product);
+        return res.status(200).json(product);
 
 
     } catch (error) {
@@ -48,32 +49,36 @@ exports.getallProduct = async(req,res)=>{
 exports.updateProduct = async(req,res)=>{
     try {
         const {name,price, details} = req.body;
-        const updateProduct = new products.findOneAndUpdate(
-            {name},
-            {price},
-            {details},
+        // const product_id = await products.findByIdAndUpdate(req.params.id);
+        const updateProduct = await products.findByIdAndUpdate(
+            req.params.id,
+            {
+                name,
+            price,
+            details},
             {new:true},
         );
         if(!updateProduct){
-            return res.status(400).json({msg:"There is error in updating"});
+            return res.status(400).json({msg:"There is error in updating",products:updateProduct});
 
         }
         return res.status(200).json(updateProduct);
     } catch (error) {
+        console.error(error);
         return res.status(500).json({msg:"There is issue while updating the Products",error});
     }
 }
 
 exports.deleteProduct = async(req,res)=>{
     try {
-        const {product_id} = req.body;
-        const productsfind = products.findOne({product_id});
-        if(!productsfind){
+        const product = products.findById(req.params.id);
+        // const productsfind = products.findOne({product_id});
+        if(!product){
             return res.status(400).json({msg:"Product with this product id is not there"});
         }
-        const deleteingtheProduct  = await products.deleteOne(product_id);
+        const deleteingtheProduct  = await products.findByIdAndDelete(req.params.id);
         return res.status(200).json({msg:"Product is sucessfully deleted",deleteingtheProduct}); 
     } catch (error) {
-        return res.status(500).json({msg:"There is issue while deleting the product"});
+        return res.status(500).json({msg:"There is issue while deleting the product",error});
     }
 }
